@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynasty Algorithm</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #080b15;
+      --card: rgba(17, 24, 39, 0.82);
+      --card-strong: rgba(30, 41, 59, 0.95);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --gold: #f7c948;
+      --gold-dark: #7c4a03;
+      --blue: #60a5fa;
+      --green: #34d399;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(247, 201, 72, 0.18), transparent 30rem),
+        radial-gradient(circle at 85% 15%, rgba(96, 165, 250, 0.22), transparent 28rem),
+        linear-gradient(135deg, #080b15 0%, #111827 48%, #1e1b4b 100%);
+      color: var(--text);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.85), transparent);
+    }
+
+    main { max-width: 1120px; margin: 0 auto; padding: 2rem; position: relative; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1.5rem;
+      align-items: center;
+      margin: 1.5rem 0 2rem;
+    }
+
+    .eyebrow { color: var(--gold); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; font-size: .78rem; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5.5rem); line-height: .9; margin: .4rem 0 1rem; }
+    h2 { margin-top: 0; }
+    .hint { color: var(--muted); font-size: 1.06rem; max-width: 62ch; }
+    .crest { font-size: clamp(4rem, 12vw, 8rem); filter: drop-shadow(0 20px 32px rgba(247, 201, 72, .22)); }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 1.35rem;
+      margin: 1rem 0;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    label { display: grid; gap: .42rem; color: var(--muted); font-weight: 800; }
+    input, select, button { border-radius: 14px; border: 1px solid var(--line); padding: .82rem .9rem; font: inherit; }
+    input, select { background: rgba(15, 23, 42, .92); color: var(--text); outline: none; }
+    input:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(247, 201, 72, .14); }
+    button { background: linear-gradient(135deg, var(--gold), #f59e0b); color: #211400; border: 0; cursor: pointer; font-weight: 900; box-shadow: 0 14px 30px rgba(245, 158, 11, .22); }
+    button:hover { transform: translateY(-1px); }
+    button.secondary { background: var(--card-strong); color: var(--text); box-shadow: none; border: 1px solid var(--line); }
+    .child-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: .75rem; align-items: end; margin-top: .75rem; }
+    .actions { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+    .stat { background: rgba(15, 23, 42, .82); border: 1px solid var(--line); border-radius: 18px; padding: 1rem; }
+    .stat strong { display: block; color: var(--gold); font-size: 1.35rem; }
+    pre { white-space: pre-wrap; background: rgba(2, 6, 23, .8); border: 1px solid var(--line); border-radius: 18px; padding: 1rem; min-height: 14rem; line-height: 1.55; }
+
+    @media (max-width: 760px) {
+      main { padding: 1rem; }
+      .hero, .child-row { grid-template-columns: 1fr; }
+      .crest { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <div class="eyebrow">Monarch life simulator</div>
+        <h1>Dynasty Algorithm</h1>
+        <p class="hint">Build a ruler checklist, press run, and watch heirs, disease, succession, and survival unfold in the browser.</p>
+      </div>
+      <div class="crest" aria-hidden="true">♛</div>
+    </header>
+
+    <section class="panel">
+      <h2>Current ruler checklist</h2>
+      <div class="grid">
+        <label>Current monarch age
+          <input id="age" type="number" min="0" value="32">
+        </label>
+        <label>Current monarch sex
+          <select id="sex">
+            <option value="female">female</option>
+            <option value="male">male</option>
+          </select>
+        </label>
+        <label>Years to simulate
+          <input id="years" type="number" min="1" value="80">
+        </label>
+        <label>Disease risk
+          <input id="disease" type="number" min="0" max="1" step="0.01" value="0.06">
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Existing children</h2>
+      <div id="children"></div>
+      <button class="secondary" type="button" id="add-child">Add child</button>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="run">Run simulation</button>
+      <span class="hint">Tip: run it a few times to see different dynasty outcomes.</span>
+    </div>
+
+    <section class="panel">
+      <h2>Results</h2>
+      <div class="stats" id="stats">
+        <div class="stat"><span>Years</span><strong>—</strong></div>
+        <div class="stat"><span>Monarch</span><strong>—</strong></div>
+        <div class="stat"><span>Living members</span><strong>—</strong></div>
+      </div>
+      <pre id="output">Set the checklist, then run the simulation.</pre>
+    </section>
+  </main>
+
+  <script>
+    class Random {
+      constructor(seed) { this.state = seed >>> 0; }
+      next() {
+        this.state = (1664525 * this.state + 1013904223) >>> 0;
+        return this.state / 4294967296;
+      }
+      choice(items) { return items[Math.floor(this.next() * items.length)]; }
+    }
+
+    function person(id, age, sex, parentId = null) {
+      return { id, age, sex, parentId, alive: true, sick: false, children: [] };
+    }
+
+    function label(member) { return `Person ${member.id} (${member.sex}, age ${member.age})`; }
+
+    function mortalityRisk(member) {
+      if (member.age < 5) return 0.035;
+      if (member.age < 45) return 0.01;
+      if (member.age < 65) return 0.025;
+      return Math.min(0.35, 0.04 + ((member.age - 65) * 0.012));
+    }
+
+    function simulate(config) {
+      const random = new Random(config.seed || 1);
+      const events = [];
+      let nextId = 1;
+      let monarch = person(nextId++, config.age, config.sex);
+      const members = [monarch];
+
+      for (const childInfo of config.children) {
+        const child = person(nextId++, childInfo.age, childInfo.sex, monarch.id);
+        monarch.children.push(child);
+        members.push(child);
+      }
+
+      events.push(`Year 0: ${label(monarch)} begins ruling.`);
+      if (monarch.children.length) {
+        events.push(`Year 0: Starting children: ${monarch.children.map(label).join(', ')}.`);
+      }
+
+      let year = 0;
+      for (year = 1; year <= config.years; year++) {
+        for (const member of members.filter((candidate) => candidate.alive)) {
+          member.age += 1;
+          if (member.sick) {
+            if (random.next() < mortalityRisk(member) + 0.18) {
+              member.alive = false;
+              member.sick = false;
+              events.push(`Year ${year}: ${label(member)} dies from disease.`);
+              if (member === monarch) monarch = chooseSuccessor(monarch, year, events);
+              continue;
+            }
+            if (random.next() < config.recovery) {
+              member.sick = false;
+              events.push(`Year ${year}: ${label(member)} recovers.`);
+            }
+            continue;
+          }
+
+          if (random.next() < mortalityRisk(member)) {
+            member.alive = false;
+            events.push(`Year ${year}: ${label(member)} dies of natural causes.`);
+            if (member === monarch) monarch = chooseSuccessor(monarch, year, events);
+            continue;
+          }
+
+          const ageModifier = member.age < 8 || member.age > 60 ? 1.5 : 1;
+          if (random.next() < Math.min(0.8, config.disease * ageModifier)) {
+            member.sick = true;
+            events.push(`Year ${year}: ${label(member)} falls ill.`);
+          }
+        }
+
+        if (!monarch) {
+          events.push(`Year ${year}: The dynasty has ended.`);
+          break;
+        }
+
+        const maximumReproductiveAge = monarch.sex === 'female' ? 45 : 60;
+        const childPenalty = Math.max(0.05, 1 - monarch.children.length * 0.08);
+        if (monarch.age >= 16 && monarch.age <= maximumReproductiveAge && random.next() < config.fertility * childPenalty) {
+          const child = person(nextId++, 0, random.choice(['female', 'male']), monarch.id);
+          monarch.children.push(child);
+          members.push(child);
+          events.push(`Year ${year}: The monarch has a child: ${label(child)}.`);
+        }
+      }
+
+      const living = members.filter((member) => member.alive).length;
+      events.push('');
+      events.push('Summary');
+      events.push(`Years simulated: ${Math.min(year, config.years)}`);
+      events.push(`Reigning monarch: ${monarch ? label(monarch) : 'none'}`);
+      events.push(`Living dynasty members: ${living}/${members.length}`);
+      document.querySelector('#stats').innerHTML = `
+        <div class="stat"><span>Years</span><strong>${Math.min(year, config.years)}</strong></div>
+        <div class="stat"><span>Monarch</span><strong>${monarch ? `#${monarch.id}` : 'None'}</strong></div>
+        <div class="stat"><span>Living members</span><strong>${living}/${members.length}</strong></div>`;
+      return events.join('\n');
+    }
+
+    function chooseSuccessor(deadMonarch, year, events) {
+      const heirs = deadMonarch.children.filter((child) => child.alive).sort((left, right) => right.age - left.age);
+      const successor = heirs[0] || null;
+      if (successor) events.push(`Year ${year}: ${label(successor)} inherits.`);
+      return successor;
+    }
+
+    function addChild(age = 12, sex = 'female') {
+      const row = document.createElement('div');
+      row.className = 'child-row';
+      row.innerHTML = `
+        <label>Child age <input class="child-age" type="number" min="0" value="${age}"></label>
+        <label>Child sex <select class="child-sex"><option value="female">female</option><option value="male">male</option></select></label>
+        <button class="secondary remove-child" type="button">Remove</button>`;
+      row.querySelector('.child-sex').value = sex;
+      row.querySelector('.remove-child').addEventListener('click', () => row.remove());
+      document.querySelector('#children').appendChild(row);
+    }
+
+    document.querySelector('#add-child').addEventListener('click', () => addChild(0, 'female'));
+    document.querySelector('#run').addEventListener('click', () => {
+      const children = Array.from(document.querySelectorAll('.child-row')).map((row) => ({
+        age: Number(row.querySelector('.child-age').value),
+        sex: row.querySelector('.child-sex').value,
+      }));
+      document.querySelector('#output').textContent = simulate({
+        age: Number(document.querySelector('#age').value),
+        sex: document.querySelector('#sex').value,
+        years: Number(document.querySelector('#years').value),
+        seed: Math.floor(Date.now() % 4294967296),
+        fertility: 0.28,
+        disease: Number(document.querySelector('#disease').value),
+        recovery: 0.55,
+        children,
+      });
+    });
+
+    addChild(12, 'female');
+    addChild(8, 'male');
+  </script>
+</body>
+</html>

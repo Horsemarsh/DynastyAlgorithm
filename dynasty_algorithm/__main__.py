@@ -43,6 +43,8 @@ def parse_args() -> argparse.Namespace:
         help="existing child; repeat for multiple children, for example --child 12:female --child 8:male",
     )
     parser.add_argument("--years", type=int, default=80, help="maximum number of years to simulate")
+    parser.add_argument("--seed", type=int, default=None, help="random seed for reproducible runs")
+    parser.add_argument("--fertility", type=float, default=0.28, help="base yearly chance of childbirth")
     parser.add_argument("--disease-risk", type=float, default=0.06, help="base yearly chance of disease")
     return parser.parse_args()
 
@@ -54,9 +56,10 @@ def main() -> None:
         current_monarch_sex=args.sex,
         starting_children=tuple(args.child),
         max_years=args.years,
+        fertility_chance=args.fertility,
         disease_risk=args.disease_risk,
     )
-    result = DynastySimulator(config).run()
+    result = DynastySimulator(config, seed=args.seed).run()
 
     print("Starting ruler checklist")
     print(f"- Current monarch age: {config.current_monarch_age}")

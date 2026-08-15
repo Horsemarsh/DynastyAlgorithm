@@ -12,12 +12,12 @@ Choose the basic facts you already know about the current monarch:
 - Current monarch sex, either `--sex female` or `--sex male`.
 - Existing children, repeated as `--child AGE:SEX`, such as `--child 12:female --child 8:male`.
 - Simulation length, such as `--years 80`.
-- Optional disease risk, such as `--disease-risk 0.06`.
+- Optional probabilities, such as `--fertility 0.28` and `--disease-risk 0.06`.
 
 ## Quick start
 
 ```bash
-python -m dynasty_algorithm --age 32 --sex female --child 12:female --child 8:male --years 80
+python -m dynasty_algorithm --seed 42 --age 32 --sex female --child 12:female --child 8:male --years 80
 ```
 
 ## Options
@@ -28,27 +28,30 @@ python -m dynasty_algorithm --help
 
 Useful flags include:
 
+- `--seed`: make a run reproducible.
 - `--age`: current age of the ruler.
 - `--sex`: current sex of the ruler.
 - `--child`: existing child in `AGE:SEX` form; repeat it for multiple children.
 - `--years`: maximum years to simulate.
+- `--fertility`: base yearly chance of childbirth while eligible.
 - `--disease-risk`: base yearly chance that a person contracts a disease.
 
 
 
+## Use it in GitHub without downloading
 
-## Run it inside GitHub Actions without downloading
+This repository includes a browser version in `docs/index.html` that can run on GitHub Pages. After GitHub Pages is enabled, people can open the Pages URL and use the checklist form directly in their browser.
 
-If you want people to use the simulator without downloading anything, have them run the **Run Dynasty Simulation** workflow in GitHub. They only fill out the ruler checklist, not developer-style tuning options.
+To turn it on in GitHub:
 
-1. Open the repository on GitHub.
-2. Select the **Actions** tab.
-3. Choose **Run Dynasty Simulation**.
-4. Click **Run workflow**.
-5. Fill in the monarch checklist fields: age, sex, existing children, years, and disease risk.
-6. Open the completed workflow run and read the result in the job summary.
+1. Push this repository to GitHub.
+2. Open the repository's **Settings** tab.
+3. Go to **Pages**.
+4. Set the source to **GitHub Actions**.
+5. Push to the `main` branch or run the **Deploy GitHub Pages** workflow manually.
+6. Send people the Pages URL shown by GitHub after deployment.
 
-For existing children, use comma-separated `AGE:SEX` entries, such as `12:female,8:male`. The workflow also uploads `simulation-output.txt` as an artifact for easy sharing.
+The web version does not require Python, Git, or a download for users.
 
 ## Sharing it with other people
 
@@ -59,7 +62,7 @@ The simplest way to share this project is to put the repository on GitHub, GitLa
 ```bash
 git clone <repository-url>
 cd DynastyAlgorithm
-python -m dynasty_algorithm --age 32 --sex female --child 12:female --years 80
+python -m dynasty_algorithm --seed 42 --age 32 --sex female --child 12:female --years 80
 ```
 
 ### If they do not have Git installed
@@ -71,7 +74,7 @@ python -m dynasty_algorithm --age 32 --sex female --child 12:female --years 80
 5. Run:
 
 ```bash
-python -m dynasty_algorithm --age 32 --sex female --child 12:female --years 80
+python -m dynasty_algorithm --seed 42 --age 32 --sex female --child 12:female --years 80
 ```
 
 ### What they need installed

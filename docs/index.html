@@ -97,7 +97,7 @@
       <div>
         <div class="eyebrow">Monarch life simulator</div>
         <h1>Dynasty Algorithm</h1>
-        <p class="hint">Build a ruler checklist, press run, and watch heirs, disease, succession, and survival unfold in the browser.</p>
+        <p class="hint">Build a ruler checklist, press run, and watch heirs, disease, succession, and survival unfold directly in GitHub Pages. No install or download needed.</p>
       </div>
       <div class="crest" aria-hidden="true">♛</div>
     </header>
@@ -117,6 +117,12 @@
         <label>Years to simulate
           <input id="years" type="number" min="1" value="80">
         </label>
+        <label>Seed
+          <input id="seed" type="number" value="42">
+        </label>
+        <label>Fertility chance
+          <input id="fertility" type="number" min="0" max="1" step="0.01" value="0.28">
+        </label>
         <label>Disease risk
           <input id="disease" type="number" min="0" max="1" step="0.01" value="0.06">
         </label>
@@ -131,7 +137,7 @@
 
     <div class="actions">
       <button type="button" id="run">Run simulation</button>
-      <span class="hint">Tip: run it a few times to see different dynasty outcomes.</span>
+      <span class="hint">Tip: use the same seed to replay the same dynasty.</span>
     </div>
 
     <section class="panel">
@@ -276,8 +282,8 @@
         age: Number(document.querySelector('#age').value),
         sex: document.querySelector('#sex').value,
         years: Number(document.querySelector('#years').value),
-        seed: Math.floor(Date.now() % 4294967296),
-        fertility: 0.28,
+        seed: Number(document.querySelector('#seed').value),
+        fertility: Number(document.querySelector('#fertility').value),
         disease: Number(document.querySelector('#disease').value),
         recovery: 0.55,
         children,

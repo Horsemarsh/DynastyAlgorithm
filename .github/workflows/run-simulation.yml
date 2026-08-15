@@ -1,0 +1,93 @@
+name: Run Dynasty Simulation
+
+on:
+  workflow_dispatch:
+    inputs:
+      age:
+        description: Current monarch age
+        required: true
+        default: "32"
+      sex:
+        description: Current monarch sex
+        required: true
+        default: female
+        type: choice
+        options:
+          - female
+          - male
+      children:
+        description: Existing children as AGE:SEX entries separated by commas, for example 12:female,8:male
+        required: false
+        default: "12:female,8:male"
+      years:
+        description: Years to simulate
+        required: true
+        default: "80"
+      disease_risk:
+        description: Base yearly disease chance from 0 to 1
+        required: true
+        default: "0.06"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run simulation
+        env:
+          AGE: ${{ inputs.age }}
+          SEX: ${{ inputs.sex }}
+          CHILDREN: ${{ inputs.children }}
+          YEARS: ${{ inputs.years }}
+          DISEASE_RISK: ${{ inputs.disease_risk }}
+        run: |
+          args=(
+            --age "$AGE"
+            --sex "$SEX"
+            --years "$YEARS"
+            --disease-risk "$DISEASE_RISK"
+          )
+
+          if [[ -n "${CHILDREN// }" ]]; then
+            IFS=',' read -ra child_entries <<< "$CHILDREN"
+            for child in "${child_entries[@]}"; do
+              child="${child//[[:space:]]/}"
+              if [[ -n "$child" ]]; then
+                args+=(--child "$child")
+              fi
+            done
+          fi
+
+          python -m dynasty_algorithm "${args[@]}" | tee simulation-output.txt
+
+      - name: Add output to job summary
+        run: |
+          {
+            echo "# Dynasty Simulation Result"
+            echo
+            echo "Run this from the repository's **Actions** tab with **Run workflow**."
+            echo
+            echo '```text'
+            cat simulation-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload simulation output
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynasty-simulation-output
+          path: simulation-output.txt
